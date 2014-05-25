@@ -34,11 +34,12 @@ data Sex = Female | Male deriving (Show)
 data NativeCountry = UnitedStates | Cambodia | England | PuertoRico | Canada
                    | Germany | OutlyingUS | India | Japan | Greece | South
                    | China | Cuba | Iran | Honduras | Philippines | Italy
-                   | Poland | Jamaica | Vietnam | Mexico | Protugal | Ireland
+                   | Poland | Jamaica | Vietnam | Mexico | Portugal | Ireland
                    | France | DominicanRepublic | Laos | Ecuador | Taiwan 
                    | Haiti | Columbia | Hungary | Guatemala | Nicaragua 
                    | Scotland | Thailand | Yugoslavia | ElSalvador 
                    | TrinadadTobago | Peru | Hong | Holand
+                   deriving (Show)
 
 data Adult = Adult 
     {   adultAge :: Int
@@ -56,3 +57,4 @@ data Adult = Adult
     ,   adultHoursPerWeek :: Int
     ,   adultNativeCountry :: NativeCountry
     }
+    deriving (Show)
