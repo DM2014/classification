@@ -16,9 +16,9 @@ import              Data.Conduit
 import              Data.Conduit.Attoparsec
 import              Prelude hiding (take)
 
-parser :: Conduit ByteString (ResourceT IO) (Maybe Adult)
+parser :: Conduit ByteString (ResourceT IO) (Maybe Labeled)
 parser = do
-    conduitParserEither (choice [parseEmptyLine, parseAdult]) =$= awaitForever go
+    conduitParserEither (choice [parseEmptyLine, parseLabeledAdult]) =$= awaitForever go
     where   go (Left s) = error $ show s
             go (Right (_, p)) = yield p
 
@@ -170,46 +170,60 @@ parseNativeCountry = MaybeT $ choice
     ,   missing
     ]
 
+parseLabel :: MaybeT Parser Label
+parseLabel = MaybeT $ choice
+    [   match "<=50K"                       False
+    ,   match ">50K"                        True
+    ,   missing
+    ]
+
 parseDelimeter :: MaybeT Parser ()
 parseDelimeter = lift $ void (string ", ")
 
-parseEmptyLine :: Parser (Maybe Adult)
+parseEmptyLine :: Parser (Maybe Labeled)
 parseEmptyLine = string "\n" >> return Nothing
 
 parseSkip :: Parser ()
 parseSkip = skipWhile (/= 0xa) >> take 1 >> return ()
 
-parseAdult :: Parser (Maybe Adult)
+parseAdult :: MaybeT Parser Adult
 parseAdult = do
-    result <- runMaybeT $ do
-        age <- parseContinuous
+    age <- parseContinuous
+    parseDelimeter
+    workClass <- parseWorkClass
+    parseDelimeter
+    finalWeight <- parseContinuous
+    parseDelimeter
+    education <- parseEducation
+    parseDelimeter
+    educationNum <- parseContinuous
+    parseDelimeter
+    maritalStatus <- parseMaritalStatus
+    parseDelimeter
+    occupation <- parseOccupation
+    parseDelimeter
+    relationship <- parseRelationship
+    parseDelimeter
+    race <- parseRace
+    parseDelimeter
+    sex <- parseSex
+    parseDelimeter
+    capitalGain <- parseContinuous
+    parseDelimeter
+    capitalLoss <- parseContinuous
+    parseDelimeter
+    hoursPerWeek <- parseContinuous
+    parseDelimeter
+    nativeCountry <- parseNativeCountry
+    return $ Adult age workClass finalWeight education educationNum maritalStatus occupation relationship race sex capitalGain capitalLoss hoursPerWeek nativeCountry
+
+
+parseLabeledAdult :: Parser (Maybe Labeled)
+parseLabeledAdult = do
+    result <- runMaybeT $ do 
+        adult <- parseAdult
         parseDelimeter
-        workClass <- parseWorkClass
-        parseDelimeter
-        finalWeight <- parseContinuous
-        parseDelimeter
-        education <- parseEducation
-        parseDelimeter
-        educationNum <- parseContinuous
-        parseDelimeter
-        maritalStatus <- parseMaritalStatus
-        parseDelimeter
-        occupation <- parseOccupation
-        parseDelimeter
-        relationship <- parseRelationship
-        parseDelimeter
-        race <- parseRace
-        parseDelimeter
-        sex <- parseSex
-        parseDelimeter
-        capitalGain <- parseContinuous
-        parseDelimeter
-        capitalLoss <- parseContinuous
-        parseDelimeter
-        hoursPerWeek <- parseContinuous
-        parseDelimeter
-        nativeCountry <- parseNativeCountry
-        return $ Adult age workClass finalWeight education educationNum maritalStatus occupation relationship race sex capitalGain capitalLoss hoursPerWeek nativeCountry
+        label <- parseLabel
+        return $ Labeled adult label
     parseSkip
     return result
-

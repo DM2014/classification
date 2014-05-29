@@ -3,33 +3,33 @@ module Census.Type where
 data WorkClass = Private | SelfEmpNotInc | SelfEmpInc 
                | FederalGov | LocalGov | StateGov 
                | WithoutPay | NeverWorked
-               deriving (Show)
+               deriving (Show, Eq)
 
 data Education = Bachelors | SomeCollege | Eleventh | HSGrad | ProfSchool
                | AssocAcdm | AssocVoc | Nineth | SeventhToEighth
                | Twelfth | Masters | FirstToFourth | Tenth | Doctorate
                | FifthToSixth | Preschool
-               deriving (Show)
+               deriving (Show, Eq)
 
 data MaritalStatus = MarriedCivSpouse | Divorced | NeverMarried | Separated
                    | Widowed | MarriedSpouseAbsent | MarriedAFSpouse 
-                   deriving (Show)
+                   deriving (Show, Eq)
 
 data Occupation = TechSupport | CraftRepair | OtherService | Sales
                 | ExecManagerial | ProfSpecialty | HandlersCleaners
                 | MachineOpInspct | AdmClerical | FarmingFishing
                 | TransportMoving | PrivHouseServ | ProtectiveServ
                 | ArmedForces
-                deriving (Show)
+                deriving (Show, Eq)
 
 data Relationship = Wife | OwnChild | Husband 
                   | NotInFamily | OtherRelative | Unmarried
-                  deriving (Show)
+                  deriving (Show, Eq)
 
 data Race = White | AsianPacIslander | AmerIndianEskimo | Other | Black
-          deriving (Show)
+          deriving (Show, Eq)
 
-data Sex = Female | Male deriving (Show)
+data Sex = Female | Male deriving (Show, Eq)
 
 data NativeCountry = UnitedStates | Cambodia | England | PuertoRico | Canada
                    | Germany | OutlyingUS | India | Japan | Greece | South
@@ -39,7 +39,7 @@ data NativeCountry = UnitedStates | Cambodia | England | PuertoRico | Canada
                    | Haiti | Columbia | Hungary | Guatemala | Nicaragua 
                    | Scotland | Thailand | Yugoslavia | ElSalvador 
                    | TrinadadTobago | Peru | Hong | Holand
-                   deriving (Show)
+                   deriving (Show, Eq)
 
 data Adult = Adult 
     {   adultAge :: Int
@@ -57,4 +57,13 @@ data Adult = Adult
     ,   adultHoursPerWeek :: Int
     ,   adultNativeCountry :: NativeCountry
     }
-    deriving (Show)
+    deriving (Show, Eq)
+
+type Label = Bool
+type DataPoint = Adult
+data Labeled = Labeled DataPoint Label deriving (Show, Eq)
+data Result = TruePositive
+            | TrueNegative
+            | FalsePositive
+            | FalseNegative
+            deriving (Show, Eq)
