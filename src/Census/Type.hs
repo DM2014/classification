@@ -60,8 +60,8 @@ data Adult = Adult
     deriving (Show, Eq)
 
 type Label = Bool
-type DataPoint = Adult
-data Labeled = Labeled DataPoint Label deriving (Show, Eq)
+type Unlabeled = Adult
+data Labeled = Labeled Unlabeled Label deriving (Show, Eq)
 data Result = TruePositive
             | TrueNegative
             | FalsePositive

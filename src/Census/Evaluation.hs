@@ -3,13 +3,13 @@ module Census.Evaluation where
 import Census.Type
 import Census.Classifier
 
-test :: Labeled -> IO Result
-test (Labeled _ True) = do
+validate :: Labeled -> IO Result
+validate (Labeled _ True) = do
     x <- classify
     case x of
         True -> return TruePositive
         False -> return FalseNegative
-test (Labeled _ False) = do
+validate (Labeled _ False) = do
     x <- classify
     case x of
         True -> return FalsePositive
@@ -45,5 +45,21 @@ weightedAccuracy wA wB wC wD rs = (a + d) / (a + b + c + d)
             b = wB * fromIntegral (falseNegative rs)
             c = wC * fromIntegral (falsePositive rs)
             d = wD * fromIntegral (trueNegative rs)
---
---kFold :: Int -> [Result] ->
+
+kFold :: Int -> [Labeled] -> IO [Result]
+kFold k rs = mapM (uncurry crossValidate) samples >>= return . concat
+    where   samples = map (isolate k rs) [0..k - 1]
+
+isolate :: Int -> [a] -> Int -> ([a], [a])
+isolate n rs i = (others, picked)
+    where   chunks = split n rs
+            picked = chunks !! i
+            others = concat . map ((!!) chunks) $ filter (/= i) [0 .. n - 1]
+
+split :: Int -> [a] -> [[a]]
+split n = split' n n
+    where   split' _ 1 xs = [xs]
+            split' n i xs = take n xs : split' n (i - 1) (drop n xs)
+
+crossValidate :: [Labeled] -> [Labeled] -> IO [Result]
+crossValidate _ = mapM validate
