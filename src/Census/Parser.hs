@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Census.Parser (parser) where
+module Census.Parser (labeledParser, unlabeledParser) where
 
 import              Census.Type
 
@@ -16,9 +16,15 @@ import              Data.Conduit
 import              Data.Conduit.Attoparsec
 import              Prelude hiding (take)
 
-parser :: Conduit ByteString (ResourceT IO) (Maybe Labeled)
-parser = do
+labeledParser :: Conduit ByteString (ResourceT IO) (Maybe Labeled)
+labeledParser = do
     conduitParserEither (choice [parseEmptyLine, parseLabeledAdult]) =$= awaitForever go
+    where   go (Left s) = error $ show s
+            go (Right (_, p)) = yield p
+
+unlabeledParser :: Conduit ByteString (ResourceT IO) (Maybe Unlabeled)
+unlabeledParser = do
+    conduitParserEither (choice [parseEmptyLine, parseUnlabeledAdult]) =$= awaitForever go
     where   go (Left s) = error $ show s
             go (Right (_, p)) = yield p
 
@@ -180,7 +186,7 @@ parseLabel = MaybeT $ choice
 parseDelimeter :: MaybeT Parser ()
 parseDelimeter = lift $ void (string ", ")
 
-parseEmptyLine :: Parser (Maybe Labeled)
+parseEmptyLine :: Parser (Maybe a)
 parseEmptyLine = string "\n" >> return Nothing
 
 parseSkip :: Parser ()
@@ -217,6 +223,12 @@ parseAdult = do
     nativeCountry <- parseNativeCountry
     return $ Adult age workClass finalWeight education educationNum maritalStatus occupation relationship race sex capitalGain capitalLoss hoursPerWeek nativeCountry
 
+
+parseUnlabeledAdult :: Parser (Maybe Unlabeled)
+parseUnlabeledAdult = do
+    result <- runMaybeT parseAdult
+    parseSkip
+    return result
 
 parseLabeledAdult :: Parser (Maybe Labeled)
 parseLabeledAdult = do

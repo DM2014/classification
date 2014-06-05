@@ -3,20 +3,34 @@ module Main where
 import Census.Parser
 import Census.Evaluation
 import Census.Type
+import Census.Classifier
 
 import              Control.Monad.Trans.Resource
+import              Data.List   (intercalate)
 import              Data.Conduit
 import qualified    Data.Conduit.Binary as CB
 import qualified    Data.Conduit.List as CL
 --import              System.IO (stdin, stdout)
-
+import              System.Environment (getArgs)
 main :: IO ()
 main = do
+    args <- getArgs
 
-    labeled <- runResourceT $ CB.sourceFile "data/census" $$ parser =$= CL.catMaybes =$ CL.consume
+    trainingData <- runResourceT $ CB.sourceFile (args !! 0) $$ labeledParser =$= CL.catMaybes =$ CL.consume
+    testingData <- runResourceT $ CB.sourceFile (args !! 1) $$ unlabeledParser =$= CL.catMaybes =$ CL.consume
+
+    result <- classifyBatch trainingData testingData
+    
+    putStrLn $ intercalate "\n" $ map showLabel result
+
+    where   showLabel True = ">50k"
+            showLabel False = "<=50k"
+
+validate :: IO ()
+validate = do
+    labeled <- runResourceT $ CB.sourceFile "data/census" $$ labeledParser =$= CL.catMaybes =$ CL.consume
     
     putStrLn $ "# there are " ++ show (length labeled) ++ " data points\n"
-
     putStrLn "# cross validation"
     mapM_ (printCrossValidation labeled) [1 .. 20]
     putStrLn "# kFold"

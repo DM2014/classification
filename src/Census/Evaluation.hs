@@ -57,7 +57,7 @@ isolate n rs i = (others, picked)
             others = concat . map ((!!) chunks) $ filter (/= i) [0 .. n - 1]
 
 split :: Int -> [a] -> [[a]]
-split n = split' n n
+split m = split' m m
     where   split' _ 1 xs = [xs]
             split' n i xs = take n xs : split' n (i - 1) (drop n xs)
 
